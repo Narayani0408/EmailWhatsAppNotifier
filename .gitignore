@@ -1,0 +1,6 @@
+.env
+credentials.json
+token.json
+state.json
+last_email.txt
+__pycache__/
