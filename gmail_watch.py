@@ -15,9 +15,8 @@ STATE_FILE = "state.json"
 
 def save_watch_state(history_id, expiration):
     state = {
-        "historyId": history_id,
-        "expiration": expiration,
-        "processed_ids": []
+        "watchHistoryId": history_id,
+        "expiration": expiration
     }
 
     with open(STATE_FILE, "w") as file:

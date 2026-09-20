@@ -26,16 +26,21 @@ def get_new_messages(service, start_history_id):
     response = service.users().history().list(
         userId="me",
         startHistoryId=start_history_id,
-        historyTypes=["messageAdded"]
+        maxResults=500
     ).execute()
 
     new_messages = []
 
     for history in response.get("history", []):
+        print("History record:", history)
+
         for message_added in history.get("messagesAdded", []):
-            new_messages.append(
-                message_added["message"]["id"]
-            )
+            message_id = message_added["message"]["id"]
+
+            if message_id not in new_messages:
+                new_messages.append(message_id)
+
+    print("Found message IDs:", new_messages)
 
     return new_messages
 
