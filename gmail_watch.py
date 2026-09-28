@@ -10,20 +10,21 @@ PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT_ID")
 
 TOPIC_NAME = f"projects/{PROJECT_ID}/topics/gmail-notifications"
 
-STATE_FILE = "state.json"
+WATCH_STATE_FILE = "watch_state.json"
 
 
 def save_watch_state(history_id, expiration):
     state = {
-        "watchHistoryId": history_id,
+        "historyId": history_id,
         "expiration": expiration
     }
 
-    with open(STATE_FILE, "w") as file:
+    with open(WATCH_STATE_FILE, "w") as file:
         json.dump(state, file, indent=4)
 
 
 def main():
+
     service = get_gmail_service()
 
     print("Starting Gmail Watch...")
@@ -50,7 +51,7 @@ def main():
     )
 
     print("\n✅ Gmail Watch successfully created.")
-    print("✅ State saved.")
+    print("✅ Watch state saved separately.")
     print("📧 Gmail is now watching your inbox.")
 
 

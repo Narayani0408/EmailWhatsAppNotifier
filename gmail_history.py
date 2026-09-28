@@ -1,5 +1,7 @@
 import json
 import os
+import time
+import random
 
 from gmail_service import get_gmail_service
 from email_utils import get_email_body, clean_email_body
@@ -23,37 +25,53 @@ def save_state(state):
 
 
 def get_new_messages(service, start_history_id):
-    response = service.users().history().list(
-        userId="me",
-        startHistoryId=start_history_id,
-        maxResults=500
-    ).execute()
 
-    print("FULL HISTORY RESPONSE:")
-    print(response)
+    for attempt in range(5):
 
-    new_messages = []
+        try:
+            response = service.users().history().list(
+                userId="me",
+                startHistoryId=start_history_id,
+                maxResults=100
+            ).execute()
 
-    for history in response.get("history", []):
-        print("HISTORY RECORD:")
-        print(history)
+            new_messages = []
 
-        for message_added in history.get("messagesAdded", []):
-            message_id = message_added["message"]["id"]
+            for history in response.get("history", []):
 
-            if message_id not in new_messages:
-                new_messages.append(message_id)
+                for message_added in history.get("messagesAdded", []):
 
-        # Fallback: check messages directly
-        for message in history.get("messages", []):
-            message_id = message["id"]
+                    message_id = message_added["message"]["id"]
 
-            if message_id not in new_messages:
-                new_messages.append(message_id)
+                    if message_id not in new_messages:
+                        new_messages.append(message_id)
 
-    print("FOUND MESSAGE IDS:", new_messages)
+            print("FOUND MESSAGE IDS:", new_messages)
 
-    return new_messages
+            return new_messages
+
+        except Exception as e:
+
+            error_text = str(e)
+
+            if "rateLimitExceeded" not in error_text:
+                raise
+
+            wait_time = min(
+                (2 ** attempt) + random.random(),
+                32
+            )
+
+            print(
+                f"⚠️ Gmail rate limit reached. "
+                f"Retrying in {wait_time:.1f} seconds..."
+            )
+
+            time.sleep(wait_time)
+
+    raise Exception(
+        "Gmail API rate limit still active after retries."
+    )
 
 
 def process_email(service, message_id):
